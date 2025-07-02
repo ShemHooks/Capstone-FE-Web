@@ -1,5 +1,6 @@
 import React from "react";
 import axiosInstance from "../../../utils/API/Axios";
+import { io } from "socket.io-client";
 
 const base64ToFile = (base64Data, filename) => {
   const arr = base64Data.split(",");
@@ -24,17 +25,16 @@ const SendRequest = async (
   latitude,
   request_photo
 ) => {
+  const socket = io("http://localhost:8080");
   const imageFile = base64ToFile(request_photo, "photo.png");
-  const formattedDate = request_date
-    .toISOString()
-    .slice(0, 19)
-    .replace("T", " ");
+
+  console.log("date", request_date);
 
   const formData = new FormData();
   formData.append("user_id", user_id);
   formData.append("request_type", request_type);
   formData.append("request_status", request_status);
-  formData.append("request_date", formattedDate);
+  formData.append("request_date", request_date);
   formData.append("longitude", longitude);
   formData.append("latitude", latitude);
   formData.append("request_photo", imageFile);
@@ -48,6 +48,9 @@ const SendRequest = async (
     if (!response) {
       console.log("unable to send");
     }
+
+    socket.emit("emergencyRequest");
+    return response.data;
   } catch (error) {
     const message =
       error.response?.data?.message ||

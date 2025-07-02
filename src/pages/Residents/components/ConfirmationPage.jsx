@@ -40,19 +40,37 @@ const ConfirmationPage = () => {
     }
   }, [pinnedLat, pinnedLong]);
 
+  const formatDateLocal = (date) => {
+    const pad = (n) => String(n).padStart(2, "0");
+    return (
+      `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+      `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+    );
+  };
+
   const handleConfirm = async () => {
+    const requestDate = formatDateLocal(date);
     try {
       const response = await SendRequest(
         userId,
         emergencyType,
         requestStatus,
-        date,
+        requestDate,
         pinnedLong,
         pinnedLat,
         image
       );
+      if (
+        !response ||
+        typeof response !== "object" ||
+        !("success" in response)
+      ) {
+        setErrorMsg("Something went wrong. Invalid response from server.");
+        return;
+      }
+
       if (!response.success) {
-        setErrorMsg(response.message);
+        setErrorMsg(response.message || "Request failed without a message.");
         return;
       }
 
@@ -96,6 +114,7 @@ const ConfirmationPage = () => {
               <span className="font-bold">Type: </span>
               <h2>{emergencyType}</h2>
             </div>
+
             <div className="flex flex-col gap-2 lg:w-1/4">
               <span className="font-bold">Photo: </span>
               <img

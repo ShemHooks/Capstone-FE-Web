@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaTimes } from "react-icons/fa";
+import RejectReport from "../../services/RejectReport";
+import VerifyReport from "../../services/VerifyReport";
 
 const RequestDetails = ({ details, onClose }) => {
   console.log("request details", details);
+  const [isLoading, setIsLoading] = useState(false);
 
   const reporterName = details.requester.name;
   const reporterGender = details.requester.gender;
@@ -10,6 +13,7 @@ const RequestDetails = ({ details, onClose }) => {
   const reporterEmail = details.requester.email;
   const reporterAddress = details.requester.address;
 
+  const reportId = details.id;
   const reportedIncident = details.request_type;
   const reportPhoto = details.request_photo;
   const rawReportDateTime = details.request_date;
@@ -25,6 +29,34 @@ const RequestDetails = ({ details, onClose }) => {
       hour12: true,
     }
   );
+
+  const rejectRequest = async () => {
+    setIsLoading(true);
+    try {
+      await RejectReport(reportId);
+
+      alert("Successfully Reject Report");
+      onClose();
+    } catch (err) {
+      console.log(err);
+      alert("Failed to reject the report. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const VerifyRequest = async () => {
+    setIsLoading(true);
+    try {
+      await VerifyReport(reportId);
+      alert("Successfully Verified Report");
+      onClose();
+    } catch (err) {
+      alert("Failed to verify the report. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div>
@@ -62,7 +94,7 @@ const RequestDetails = ({ details, onClose }) => {
             Date & Time: <h1>{formattedReportDateTime}</h1>
           </div>
           <div className="flex gap-2">
-            Type of Incident: <h1>{reportedIncident}</h1>
+            Type of Incident: <h1 className="capitalize">{reportedIncident}</h1>
           </div>
           <div>
             Image:
@@ -74,11 +106,17 @@ const RequestDetails = ({ details, onClose }) => {
               />
             </div>
             <div className="flex gap-10 justify-end pr-10 mt-10 mb-10">
-              <button className="border border-white rounded p-2 cursor-pointer w-40 h-10 transform hover:scale-110 transition-transform duration-300">
-                Mark as Duplicate
+              <button
+                className="border rounded p-2 cursor-pointer w-20 h-10 transform hover:scale-110 transition-transform duration-300"
+                onClick={rejectRequest}
+              >
+                {isLoading ? "Rejecting" : "Reject"}
               </button>
-              <button className="border border-white rounded p-2 cursor-pointer w-20 h-10 transform hover:scale-110 transition-transform duration-300">
-                Verify
+              <button
+                className="border  rounded p-2 cursor-pointer w-20 h-10 transform hover:scale-110 transition-transform duration-300"
+                onClick={VerifyRequest}
+              >
+                {isLoading ? "Verifying" : "Verify"}
               </button>
             </div>
           </div>
